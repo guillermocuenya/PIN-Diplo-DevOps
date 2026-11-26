@@ -49,4 +49,4 @@ kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-passwor
 ## Author
 
 **Guillermo Cuenya** — Senior QA Automation Engineer / SDET · Telecommunications Engineer  
-[LinkedIn](https://www.linkedin.com/in/guillermoadriancuenya/) · [GitHub](https://github.com/gcuenya1)
+[LinkedIn](https://www.linkedin.com/in/guillermoadriancuenya/) · [GitHub](https://github.com/guillermocuenya) · [Portfolio](https://guillermocuenya.github.io)
