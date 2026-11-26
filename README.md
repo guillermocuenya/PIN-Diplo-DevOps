@@ -1,117 +1,52 @@
-# Proyecto Integrador DevOps - Kubernetes con Minikube
+# ☸️ Kubernetes Monitoring Stack — DevOps Capstone
 
-## 📌 Descripción
-Este proyecto implementa un entorno Kubernetes en **Minikube** para el despliegue de aplicaciones y monitoreo utilizando **Prometheus** y **Grafana**. Además, permite la eliminación y limpieza del entorno con un script de cleanup.
+> Final integrative project of the **Diploma in DevOps (Universidad Nacional de Córdoba)**: automated provisioning of a Kubernetes environment on Minikube with an NGINX workload and a **Prometheus + Grafana** monitoring stack installed via Helm.
 
-## 🚀 Características Principales
-- **Configuración Automática** de Kubernetes en Minikube.
-- **Despliegue de NGINX** como una aplicación de prueba.
-- **Instalación de Prometheus y Grafana** mediante Helm.
-- **Almacenamiento Persistente** para Grafana con `PersistentVolumeClaim (PVC)`.
-- **Scripts de Automatización** para instalación y cleanup.
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![Minikube](https://img.shields.io/badge/Minikube-326CE5?style=flat-square&logo=kubernetes&logoColor=white) ![Helm](https://img.shields.io/badge/Helm-0F1689?style=flat-square&logo=helm&logoColor=white) ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=prometheus&logoColor=white) ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white) ![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat-square&logo=gnubash&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 
----
+## Overview
+One script brings up the full environment and another tears it down, so the stack is reproducible end to end.
 
-## 📜 Requisitos
-- **Sistema Operativo**: macOS o Linux.
-- **Dependencias Instaladas**:
-  - Docker
-  - Minikube
-  - Kubectl
-  - Helm
-  - Homebrew (solo macOS)
+```
+setup_devops.sh
+ ├─ checks dependencies and starts Minikube
+ ├─ deploys NGINX as a sample application
+ ├─ installs Prometheus (namespace: monitoring) via Helm
+ ├─ installs Grafana (namespace: grafana) via Helm with a PersistentVolumeClaim
+ └─ prints the access URLs
 
----
-
-## 🔧 Instalación y Configuración
-Para desplegar el entorno, ejecuta el siguiente script:
-
-```bash
-chmod +x setup.sh
-./setup.sh
+cleanup_devops.sh
+ └─ uninstalls the Helm releases, deletes namespaces and NGINX, stops and deletes Minikube
 ```
 
-Este script:
-1. **Verifica y configura Minikube**.
-2. **Despliega NGINX** como aplicación de prueba.
-3. **Instala Prometheus y Grafana con almacenamiento persistente**.
-4. **Proporciona las URLs de acceso** a los servicios desplegados.
+## Key features
+- **Infrastructure automation** with idempotent Bash scripts.
+- **Observability**: cluster and workload metrics in Prometheus, dashboards in Grafana.
+- **Persistent storage** for Grafana dashboards via PVC.
+- **Troubleshooting runbook** for common failure modes (pending pods, `SVC_UNREACHABLE`, unbound PVCs).
 
-### 🔑 Acceso a los Servicios
-Tras la ejecución del script, obtendrás las URLs de acceso a:
-- **Grafana**: `http://<minikube-ip>:<port>`
-- **Prometheus**: `http://<minikube-ip>:<port>`
+## Requirements
+macOS or Linux with Docker, Minikube, kubectl and Helm (Homebrew on macOS).
 
-Para obtener la contraseña de Grafana:
+## Usage
+```bash
+chmod +x scripts/setup_devops.sh scripts/cleanup_devops.sh
+./scripts/setup_devops.sh      # provision
+./scripts/cleanup_devops.sh    # tear down
+```
+
+Grafana admin password:
 ```bash
 kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode
 ```
 
----
-
-## 🧹 Cleanup (Eliminación del Entorno)
-Si deseas **eliminar todos los recursos y reiniciar el entorno**, ejecuta:
-
-```bash
-chmod +x cleanup.sh
-./cleanup.sh
-```
-
-Este script:
-1. **Elimina Prometheus y Grafana**.
-2. **Borra el namespace de monitoreo**.
-3. **Elimina el despliegue de NGINX**.
-4. **Detiene y elimina Minikube**.
+## Documentation
+- 📘 Full guide and troubleshooting (Spanish): [docs/GUIA.md](docs/GUIA.md)
+- 📄 Project brief: `PIN_ Consigna Proyecto integrador final.pdf` · Final report: `PIN Final.pdf`
 
 ---
 
-## 📊 Persistencia de Datos en Grafana
-Grafana ha sido configurado con un `PersistentVolumeClaim (PVC)` para evitar la pérdida de dashboards tras reinicios. Puedes verificarlo con:
+## Author
 
-```bash
-kubectl get pvc -n grafana
-```
-
-Si el estado es `Bound`, significa que los datos se están almacenando correctamente.
-
----
-
-## 🛠️ Troubleshooting
-### 1️⃣ **No puedo acceder a Grafana o Prometheus**
-Ejecuta:
-```bash
-kubectl get pods -n grafana
-kubectl get pods -n monitoring
-```
-Si los pods están en `Pending` o `CrashLoopBackOff`, intenta:
-```bash
-kubectl delete pod -n grafana --all
-kubectl delete pod -n monitoring --all
-```
-
-### 2️⃣ **Error `SVC_UNREACHABLE` al acceder a los servicios**
-Cambia el servicio a `NodePort`:
-```bash
-kubectl patch svc prometheus-server -n monitoring -p '{"spec": {"type": "NodePort"}}'
-kubectl patch svc grafana -n grafana -p '{"spec": {"type": "NodePort"}}'
-```
-
-### 3️⃣ **El PVC no se ha creado correctamente**
-Verifica los volúmenes con:
-```bash
-kubectl get pvc -n grafana
-kubectl describe pvc -n grafana
-```
-Si el estado no es `Bound`, revisa los eventos y errores en `kubectl describe pvc grafana`.
-
----
-
-## 📌 Conclusión
-Este proyecto permite:
-✅ Implementar Kubernetes en local con Minikube.
-✅ Desplegar NGINX como aplicación de prueba.
-✅ Instalar Prometheus y Grafana con persistencia.
-✅ Visualizar métricas del clúster y sus recursos.
-✅ Automatizar la instalación y eliminación del entorno.
-
-
+**Guillermo Cuenya** — Senior QA Automation Engineer / SDET · Telecommunications Engineer  
+[LinkedIn](https://www.linkedin.com/in/guillermoadriancuenya/) · [GitHub](https://github.com/gcuenya1)
